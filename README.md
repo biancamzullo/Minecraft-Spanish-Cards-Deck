@@ -6,6 +6,8 @@ A personalized 40-card Spanish deck for Truco, with Minecraft-inspired artwork a
 
 The responsive grid contains all four suits—Espadas, Bastos, Oros, and Copas—with ranks 1–7 and 10–12, plus one back design. Each card measures 65 × 95 mm and uses the Fira Code font.
 
+Fira Code is bundled locally with its dotted-zero variant enabled for card numbers. The font's SIL Open Font License is included in `fonts/OFL.txt`.
+
 ## Local preview
 
 Run this command from the repository directory:

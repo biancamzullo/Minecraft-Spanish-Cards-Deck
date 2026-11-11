@@ -4,10 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Truco — Baraja española de 40 cartas y reverso</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/FiraCode-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <style>
+    @font-face {
+      font-family: "Fira Code";
+      src: url("fonts/FiraCode-Regular.woff2") format("woff2");
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+
     :root {
       color-scheme: light;
       --card-width: 65mm;
@@ -109,6 +115,8 @@
       font-size: var(--number-size);
       font-weight: 400;
       font-variant-numeric: tabular-nums;
+      /* Fira Code's zero feature selects its centered-dot zero. */
+      font-feature-settings: "zero" 1;
       line-height: 1;
       color: var(--card-ink);
     }
