@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Truco — Baraja española de 40 cartas y reverso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --card-width: 65mm;
+      --card-height: 95mm;
+      --card-background: #212121;
+      --card-edge: #000;
+      --card-edge-width: 0.35mm;
+      --card-radius: 4mm;
+      --frame-inset: 4.5mm;
+      --frame-width: 0.6mm;
+      --card-ink: #fff;
+      --number-size: 5.5mm;
+      --number-inset: 6.5mm;
+      --image-inset-block: 13mm;
+      --image-inset-inline: 7.5mm;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: clamp(12px, 3vw, 36px);
+      background: #ececeb;
+      font-family: "Fira Code", monospace;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Fixed-size cards; only the number of grid columns changes on screen. */
+    .deck {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, var(--card-width));
+      justify-content: center;
+      gap: clamp(16px, 2.5vw, 32px);
+      width: 100%;
+      min-width: var(--card-width);
+      margin: 0 auto;
+    }
+
+    .card {
+      position: relative;
+      isolation: isolate;
+      width: var(--card-width);
+      height: var(--card-height);
+      overflow: hidden;
+      border: var(--card-edge-width) solid var(--card-edge);
+      border-radius: var(--card-radius);
+      background: var(--card-background);
+      color: var(--card-ink);
+      break-inside: avoid;
+      page-break-inside: avoid;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    /* Full-bleed back: the existing card outline clips the finished PNG. */
+    .card--back > .card-back-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    /*
+      Inset from the OUTER card edge, accounting for the black border.
+      Every frame shares uninterrupted side rails. Only its two horizontal
+      paths differ. All gap patterns are symmetric about the exact center.
+    */
+    .card-frame {
+      position: absolute;
+      z-index: 2;
+      inset: calc(var(--frame-inset) - var(--card-edge-width));
+      width: calc(100% - 2 * (var(--frame-inset) - var(--card-edge-width)));
+      height: calc(100% - 2 * (var(--frame-inset) - var(--card-edge-width)));
+      overflow: visible;
+      fill: none;
+      stroke: var(--card-ink);
+      stroke-width: var(--frame-width);
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+      pointer-events: none;
+    }
+
+    .card-number {
+      position: absolute;
+      z-index: 3;
+      font-family: "Fira Code", monospace;
+      font-size: var(--number-size);
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      color: var(--card-ink);
+    }
+
+    .card-number--top {
+      top: calc(var(--number-inset) - var(--card-edge-width));
+      left: calc(var(--number-inset) - var(--card-edge-width));
+    }
+
+    .card-number--bottom {
+      right: calc(var(--number-inset) - var(--card-edge-width));
+      bottom: calc(var(--number-inset) - var(--card-edge-width));
+      transform: rotate(180deg);
+    }
+
+    /*
+      INSERT ARTWORK inside each .card-image, for example:
+      <img src="your-artwork.svg" alt="">
+      Transparent PNGs, SVG images and inline SVGs all fit this slot.
+      Keep the surrounding card markup intact when replacing its artwork.
+      Cup SVG filenames match the card rank: minecraft-cups-3.svg is the red 3.
+    */
+    .card-image {
+      position: absolute;
+      z-index: 1;
+      inset:
+        calc(var(--image-inset-block) - var(--card-edge-width))
+        calc(var(--image-inset-inline) - var(--card-edge-width));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .card-image > img,
+    .card-image > svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      object-position: center;
+    }
+
+    /* Ace artwork is sized individually to match the supplied card examples. */
+    .card-image--ace {
+      --ace-rotation: 0deg;
+      --ace-offset-x: 0mm;
+      --ace-offset-y: 0mm;
+      inset: calc(var(--frame-inset) - var(--card-edge-width));
+      overflow: visible;
+    }
+
+    .card-image--ace > img {
+      width: var(--ace-width);
+      height: var(--ace-height);
+      max-width: none;
+      max-height: none;
+      transform:
+        translate(var(--ace-offset-x), var(--ace-offset-y))
+        rotate(var(--ace-rotation));
+      transform-origin: center;
+    }
+
+    .card-image--gold-ace {
+      --ace-width: 33.75mm;
+      --ace-height: 45mm;
+    }
+
+    .card-image--sword-ace {
+      /* The rotated sword's visible silhouette is approximately 67mm tall. */
+      --ace-width: 54.7mm;
+      --ace-height: 54.7mm;
+      --ace-rotation: -15deg;
+    }
+
+    .card-image--cups-ace {
+      --ace-width: 29.77mm;
+      --ace-height: 43mm;
+    }
+
+    .card-image--clubs-ace {
+      /* Small optical offsets center the silhouette after its rotation. */
+      --ace-width: 46.15mm;
+      --ace-height: 53.84mm;
+      --ace-rotation: 15deg;
+      --ace-offset-x: -1.49mm;
+      --ace-offset-y: -1mm;
+    }
+
+    /* Pips use centered coordinates; pairs use opposite offsets and rotations. */
+    .card-image--pair,
+    .card-image--triple,
+    .card-image--four,
+    .card-image--five,
+    .card-image--six,
+    .card-image--seven {
+      --pip-x: 0mm;
+      --pip-y: 0mm;
+      --pip-angle: 0deg;
+      inset: calc(var(--frame-inset) - var(--card-edge-width));
+      display: block;
+      overflow: visible;
+    }
+
+    .card-image--pair > img,
+    .card-image--triple > img,
+    .card-image--four > img,
+    .card-image--five > img,
+    .card-image--six > img,
+    .card-image--seven > img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--pip-width);
+      height: var(--pip-height);
+      max-width: none;
+      max-height: none;
+      transform:
+        translate(-50%, -50%)
+        translate(var(--pip-x), var(--pip-y))
+        rotate(var(--pip-angle))
+        scaleX(var(--pip-scale-x, 1));
+      transform-origin: center;
+    }
+
+    .card-image--vertical-pair > .pip--top {
+      --pip-y: calc(-1 * var(--pip-distance));
+    }
+
+    .card-image--vertical-pair > .pip--bottom {
+      --pip-y: var(--pip-distance);
+      --pip-angle: 180deg;
+    }
+
+    .card-image--horizontal-pair > .pip--left {
+      --pip-x: calc(-1 * var(--pip-distance));
+      --pip-angle: -225deg;
+    }
+
+    .card-image--horizontal-pair > .pip--right {
+      --pip-x: var(--pip-distance);
+      --pip-angle: -45deg;
+    }
+
+    .card-image--gold-pair {
+      --pip-width: 32mm;
+      --pip-height: 24mm;
+      --pip-distance: 18mm;
+    }
+
+    .card-image--cups-pair {
+      --pip-width: 18.69mm;
+      --pip-height: 27mm;
+      --pip-distance: 19mm;
+    }
+
+    .card-image--swords-pair {
+      /* Rotating this diagonal sprite makes a roughly 52mm upright sword. */
+      --pip-width: 36.77mm;
+      --pip-height: 36.77mm;
+      --pip-distance: 10.5mm;
+    }
+
+    .card-image--clubs-pair {
+      /* The diagonal stick becomes an approximately 63mm vertical basto. */
+      --pip-width: 44.55mm;
+      --pip-height: 44.55mm;
+      --pip-distance: 10mm;
+    }
+
+    /* Three-pip layouts follow the supplied staggered / three-column examples. */
+    .card-image--staggered-triple > .pip--top-left {
+      --pip-x: calc(-1 * var(--pip-distance-x));
+      --pip-y: calc(-1 * var(--pip-distance-y));
+    }
+
+    .card-image--staggered-triple > .pip--middle-right {
+      --pip-x: var(--pip-distance-x);
+    }
+
+    .card-image--staggered-triple > .pip--bottom-left {
+      --pip-x: calc(-1 * var(--pip-distance-x));
+      --pip-y: var(--pip-distance-y);
+    }
+
+    .card-image--horizontal-triple > .pip--left {
+      --pip-x: calc(-1 * var(--pip-distance));
+    }
+
+    .card-image--horizontal-triple > .pip--right {
+      --pip-x: var(--pip-distance);
+    }
+
+    .card-image--gold-triple {
+      --pip-width: 25.6mm;
+      --pip-height: 19.2mm;
+      --pip-distance-x: 10mm;
+      --pip-distance-y: 17mm;
+    }
+
+    .card-image--cups-triple {
+      --pip-width: 16.62mm;
+      --pip-height: 24mm;
+      --pip-distance-x: 11mm;
+      --pip-distance-y: 17mm;
+    }
+
+    .card-image--swords-triple {
+      --pip-width: 26mm;
+      --pip-height: 26mm;
+      --pip-distance: 15mm;
+    }
+
+    .card-image--swords-triple > .pip--left,
+    .card-image--swords-triple > .pip--right {
+      --pip-angle: -225deg;
+    }
+
+    .card-image--swords-triple > .pip--middle {
+      --pip-angle: -45deg;
+    }
+
+    .card-image--clubs-triple {
+      --pip-width: 29.35mm;
+      --pip-height: 29.35mm;
+      --pip-distance: 13.5mm;
+      --pip-angle: -45deg;
+    }
+
+    /* Four-pip layouts use exact corner offsets about the card's center. */
+    .card-image--quad-grid > .pip--top-left {
+      --pip-x: calc(-1 * var(--pip-distance-x));
+      --pip-y: calc(-1 * var(--pip-distance-y));
+    }
+
+    .card-image--quad-grid > .pip--top-right {
+      --pip-x: var(--pip-distance-x);
+      --pip-y: calc(-1 * var(--pip-distance-y));
+    }
+
+    .card-image--quad-grid > .pip--bottom-left {
+      --pip-x: calc(-1 * var(--pip-distance-x));
+      --pip-y: var(--pip-distance-y);
+    }
+
+    .card-image--quad-grid > .pip--bottom-right {
+      --pip-x: var(--pip-distance-x);
+      --pip-y: var(--pip-distance-y);
+    }
+
+    .card-image--gold-four {
+      --pip-width: 21mm;
+      --pip-height: 15.75mm;
+      --pip-distance-x: 13mm;
+      --pip-distance-y: 14mm;
+    }
+
+    .card-image--gold-four > .pip--top-right,
+    .card-image--gold-four > .pip--bottom-right {
+      --pip-scale-x: -1;
+    }
+
+    .card-image--cups-four {
+      --pip-width: 15.92mm;
+      --pip-height: 23mm;
+      --pip-distance-x: 11mm;
+      --pip-distance-y: 17mm;
+    }
+
+    .card-image--cups-four > .pip--bottom-left,
+    .card-image--cups-four > .pip--bottom-right {
+      --pip-angle: 180deg;
+    }
+
+    .card-image--inward-four {
+      --pip-width: 25mm;
+      --pip-height: 25mm;
+      --pip-distance-x: 12.5mm;
+      --pip-distance-y: 20mm;
+      /* atan2(20, 12.5): each sprite's diagonal axis targets the exact center. */
+      --inward-angle: 57.994617deg;
+    }
+
+    .card-image--inward-four > .pip--top-left {
+      --pip-angle: calc(45deg + var(--inward-angle));
+    }
+
+    .card-image--inward-four > .pip--top-right {
+      --pip-angle: calc(225deg - var(--inward-angle));
+    }
+
+    .card-image--inward-four > .pip--bottom-left {
+      --pip-angle: calc(45deg - var(--inward-angle));
+    }
+
+    .card-image--inward-four > .pip--bottom-right {
+      --pip-angle: calc(var(--inward-angle) - 135deg);
+    }
+
+    /* Five pips: four balanced corner positions plus one at the exact center. */
+    .card-image--gold-five {
+      --pip-width: 21mm;
+      --pip-height: 15.75mm;
+      --pip-distance-x: 12.5mm;
+      --pip-distance-y: 17mm;
+    }
+
+    .card-image--gold-five > .pip--top-right,
+    .card-image--gold-five > .pip--bottom-right,
+    .card-image--gold-five > .pip--center {
+      --pip-scale-x: -1;
+    }
+
+    .card-image--cups-five {
+      --pip-width: 15.92mm;
+      --pip-height: 23mm;
+      --pip-distance-x: 11.5mm;
+      --pip-distance-y: 26mm;
+    }
+
+    .card-image--cups-five > .pip--bottom-left,
+    .card-image--cups-five > .pip--bottom-right {
+      --pip-angle: 180deg;
+    }
+
+    .card-image--swords-five,
+    .card-image--clubs-five {
+      --pip-width: 22.5mm;
+      --pip-height: 22.5mm;
+      --pip-distance-x: 14mm;
+      --pip-distance-y: 21mm;
+      --pip-angle: -45deg;
+    }
+
+    .card-image--swords-five > .pip--top-left,
+    .card-image--swords-five > .pip--top-right {
+      --pip-angle: -225deg;
+    }
+
+    .card-image--clubs-five > .pip--center {
+      /* Rotate the diagonal stick into the horizontal center crossbar. */
+      --pip-angle: 45deg;
+    }
+
+    /* Six pips: two columns of three, or three columns of two. */
+    .card-image--two-column-six > .pip--middle-left,
+    .card-image--two-column-seven > .pip--middle-left {
+      --pip-x: calc(-1 * var(--pip-distance-x));
+      --pip-y: var(--pip-middle-y, 0mm);
+    }
+
+    .card-image--two-column-six > .pip--middle-right,
+    .card-image--two-column-seven > .pip--middle-right {
+      --pip-x: var(--pip-distance-x);
+      --pip-y: var(--pip-middle-y, 0mm);
+    }
+
+    .card-image--three-column-six > .pip--top-center,
+    .card-image--three-column-seven > .pip--top-center {
+      --pip-y: calc(-1 * var(--pip-distance-y));
+    }
+
+    .card-image--three-column-six > .pip--bottom-center,
+    .card-image--three-column-seven > .pip--bottom-center {
+      --pip-y: var(--pip-distance-y);
+    }
+
+    .card-image--gold-six {
+      --pip-width: 21mm;
+      --pip-height: 15.75mm;
+      --pip-distance-x: 12.5mm;
+      --pip-distance-y: 23mm;
+    }
+
+    .card-image--gold-six > .pip--top-right,
+    .card-image--gold-six > .pip--middle-right,
+    .card-image--gold-six > .pip--bottom-right {
+      --pip-scale-x: -1;
+    }
+
+    .card-image--cups-six {
+      --pip-width: 15.92mm;
+      --pip-height: 23mm;
+      --pip-distance-x: 11.5mm;
+      --pip-distance-y: 26mm;
+    }
+
+    .card-image--cups-six > .pip--middle-right,
+    .card-image--cups-six > .pip--bottom-left,
+    .card-image--cups-six > .pip--bottom-right {
+      --pip-angle: 180deg;
+    }
+
+    .card-image--swords-six {
+      --pip-width: 23mm;
+      --pip-height: 23mm;
+      --pip-distance-x: 14mm;
+      --pip-distance-y: 20.5mm;
+      --pip-angle: -45deg;
+    }
+
+    .card-image--swords-six > .pip--top-left,
+    .card-image--swords-six > .pip--top-right,
+    .card-image--swords-six > .pip--bottom-center {
+      --pip-angle: -225deg;
+    }
+
+    .card-image--clubs-six {
+      --pip-width: 22.5mm;
+      --pip-height: 22.5mm;
+      --pip-distance-x: 14mm;
+      --pip-distance-y: 21mm;
+      --pip-angle: -45deg;
+    }
+
+    /* Seven pips: raised seventh pip for gold/cups, center crossbar for long suits. */
+    .card-image--two-column-seven > .pip--raised-center {
+      --pip-y: var(--pip-raised-y);
+    }
+
+    .card-image--gold-seven {
+      --pip-width: 20mm;
+      --pip-height: 15mm;
+      --pip-distance-x: 12.5mm;
+      --pip-distance-y: 25mm;
+      --pip-middle-y: 7mm;
+      --pip-raised-y: -9mm;
+    }
+
+    .card-image--gold-seven > .pip--top-right,
+    .card-image--gold-seven > .pip--middle-right,
+    .card-image--gold-seven > .pip--bottom-right {
+      --pip-scale-x: -1;
+    }
+
+    .card-image--cups-seven {
+      --pip-width: 14.19mm;
+      --pip-height: 20.5mm;
+      --pip-distance-x: 13mm;
+      --pip-distance-y: 30.5mm;
+      --pip-middle-y: 7.5mm;
+      --pip-raised-y: -12.5mm;
+    }
+
+    .card-image--swords-seven {
+      --pip-width: 20.5mm;
+      --pip-height: 20.5mm;
+      --pip-distance-x: 14mm;
+      --pip-distance-y: 24.5mm;
+      --pip-angle: -45deg;
+    }
+
+    .card-image--swords-seven > .pip--top-left,
+    .card-image--swords-seven > .pip--top-center,
+    .card-image--swords-seven > .pip--top-right {
+      --pip-angle: -225deg;
+    }
+
+    .card-image--swords-seven > .pip--center,
+    .card-image--clubs-seven > .pip--center {
+      --pip-angle: 45deg;
+    }
+
+    .card-image--clubs-seven {
+      --pip-width: 22.5mm;
+      --pip-height: 22.5mm;
+      --pip-distance-x: 14mm;
+      --pip-distance-y: 21mm;
+      --pip-angle: -45deg;
+    }
+
+    /* Court scenes reuse character hand surfaces above each held prop. */
+    .card-image--court {
+      inset: calc(var(--frame-inset) - var(--card-edge-width));
+      overflow: visible;
+    }
+
+    .card-image--court > .court-scene {
+      width: 50mm;
+      height: 70mm;
+      max-width: none;
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* Knight artwork can cover the side frame, while the numbers stay on top. */
+    .card-image--knight,
+    .card-image--king {
+      z-index: 2;
+    }
+
+    .card-image--court > .court-scene--knight {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 65mm;
+      height: 80mm;
+      transform: translate(-50%, -50%);
+    }
+
+    .card-image--court > .court-scene--king {
+      width: 55mm;
+      height: 80mm;
+    }
+
+    .card-image--court > .corner-suit {
+      position: absolute;
+      z-index: 3;
+      width: var(--corner-width);
+      height: var(--corner-height);
+      max-width: none;
+      max-height: none;
+      transform: rotate(var(--corner-angle, 0deg));
+    }
+
+    .card-image--court > .corner-suit--top {
+      top: 2mm;
+      left: 10.5mm;
+    }
+
+    .card-image--court > .corner-suit--bottom {
+      right: 10.5mm;
+      bottom: 2mm;
+      transform: rotate(calc(180deg + var(--corner-angle, 0deg)));
+    }
+
+    .card-image--knight-gold,
+    .card-image--king-gold {
+      --corner-width: 9mm;
+      --corner-height: 6.75mm;
+    }
+
+    .card-image--knight-cups,
+    .card-image--king-cups {
+      --corner-width: 7.5mm;
+      --corner-height: 10.83mm;
+    }
+
+    .card-image--knight-swords,
+    .card-image--knight-clubs,
+    .card-image--king-swords,
+    .card-image--king-clubs {
+      --corner-width: 7mm;
+      --corner-height: 7mm;
+      --corner-angle: -45deg;
+    }
+
+    .frame-definitions {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .frame-definitions path { stroke-width: var(--frame-width); }
+
+    @page { margin: 5mm; }
+
+    @media print {
+      body { padding: 0; background: #fff; }
+      .deck { gap: 1mm; }
+      .card { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="visually-hidden">Baraja española de truco: 40 cartas y reverso</h1>
+
+  <!--
+    Coordinates: 560 × 860 corresponds to the 56 × 86 mm inner frame.
+    The top and bottom patterns are identical, including exact gap widths.
+    Non-scaling strokes preserve the same physical line weight on every suit.
+  -->
+  <svg class="frame-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- Character coordinates also anchor the suit props and foreground grip. -->
+      <g id="jack-character">
+        <image href="minecraft-jack-solid.svg" width="1139" height="1381"/>
+      </g>
+      <clipPath id="jack-grip" clipPathUnits="userSpaceOnUse">
+        <polygon points="271,682 330,708 365,771 350,781 297,738"/>
+        <polygon points="344,686 395,709 435,819 377,788"/>
+      </clipPath>
+      <clipPath id="jack-game-grip" clipPathUnits="userSpaceOnUse">
+        <!-- A short palm intersection, rather than covering the whole hand face. -->
+        <polygon points="356,782 345,761 416,724 427,745"/>
+      </clipPath>
+      <g id="jack-character-solid">
+        <image href="minecraft-jack-solid.svg" width="1139" height="1381"/>
+      </g>
+      <g id="knight-character">
+        <image href="minecraft-knight-solid.svg" width="1312" height="1199"/>
+      </g>
+      <clipPath id="knight-game-grip" clipPathUnits="userSpaceOnUse">
+        <polygon points="1039,139 1050,159 973,204 961,184"/>
+      </clipPath>
+      <g id="king-character">
+        <image href="minecraft-king-solid.svg" width="1024" height="1536"/>
+      </g>
+      <clipPath id="king-gold-grip" clipPathUnits="userSpaceOnUse">
+        <rect x="150" y="932" width="145" height="22"/>
+      </clipPath>
+      <clipPath id="king-forward-grip" clipPathUnits="userSpaceOnUse">
+        <polygon points="170,864 302,886 288,943 158,919"/>
+      </clipPath>
+      <clipPath id="king-game-grip" clipPathUnits="userSpaceOnUse">
+        <polygon points="172,883 299,906 295,929 168,906"/>
+      </clipPath>
+
+      <!-- 0 gaps: two continuous horizontal lines. -->
+      <symbol id="frame-oros" viewBox="0 0 560 860" preserveAspectRatio="none">
+        <path vector-effect="non-scaling-stroke" d="M0 0V860 M560 0V860 M0 0H560 M0 860H560"/>
+      </symbol>
+      <!-- 1 centered gap: three equal sections, alternating line / gap / line. -->
+      <symbol id="frame-copas" viewBox="0 0 560 860" preserveAspectRatio="none">
+        <path vector-effect="non-scaling-stroke" d="M0 0V860 M560 0V860 M0 0H186.666667 M373.333333 0H560 M0 860H186.666667 M373.333333 860H560"/>
+      </symbol>
+      <!-- 2 gaps: five equal sections across the full width, like traditional pintas. -->
+      <symbol id="frame-espadas" viewBox="0 0 560 860" preserveAspectRatio="none">
+        <path vector-effect="non-scaling-stroke" d="M0 0V860 M560 0V860 M0 0H112 M224 0H336 M448 0H560 M0 860H112 M224 860H336 M448 860H560"/>
+      </symbol>
+      <!-- 3 gaps: seven equal sections across the full width; both edges match. -->
+      <symbol id="frame-bastos" viewBox="0 0 560 860" preserveAspectRatio="none">
+        <path vector-effect="non-scaling-stroke" d="M0 0V860 M560 0V860 M0 0H80 M160 0H240 M320 0H400 M480 0H560 M0 860H80 M160 860H240 M320 860H400 M480 860H560"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <main class="deck" aria-label="Baraja de 40 cartas de espadas, bastos, oros y copas, y un reverso">
+    <!-- ESPADAS -->
+    <article class="card card--espadas" id="espadas-1" data-suit="espadas" data-rank="1" aria-label="1 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">1</span>
+      <div class="card-image card-image--ace card-image--sword-ace">
+        <img src="minecraft-sword-diamond.svg" alt="Espada de diamante verde de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">1</span>
+    </article>
+    <article class="card card--espadas" id="espadas-2" data-suit="espadas" data-rank="2" aria-label="2 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">2</span>
+      <div class="card-image card-image--pair card-image--horizontal-pair card-image--swords-pair">
+        <img class="pip--left" src="minecraft-sword-iron.svg" alt="Espada blanca de Minecraft invertida">
+        <img class="pip--right" src="minecraft-sword-iron.svg" alt="Espada blanca de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">2</span>
+    </article>
+    <article class="card card--espadas" id="espadas-3" data-suit="espadas" data-rank="3" aria-label="3 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">3</span>
+      <div class="card-image card-image--triple card-image--horizontal-triple card-image--swords-triple">
+        <img class="pip--left" src="minecraft-sword-iron.svg" alt="Espada blanca de Minecraft invertida">
+        <img class="pip--middle" src="minecraft-sword-iron.svg" alt="Espada blanca de Minecraft">
+        <img class="pip--right" src="minecraft-sword-iron.svg" alt="Espada blanca de Minecraft invertida">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">3</span>
+    </article>
+    <article class="card card--espadas" id="espadas-4" data-suit="espadas" data-rank="4" aria-label="4 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">4</span>
+      <div class="card-image card-image--four card-image--quad-grid card-image--inward-four">
+        <img class="pip--top-left" src="minecraft-sword-wood.svg" alt="Espada marrón de Minecraft orientada al centro">
+        <img class="pip--top-right" src="minecraft-sword-wood.svg" alt="Espada marrón de Minecraft orientada al centro">
+        <img class="pip--bottom-left" src="minecraft-sword-wood.svg" alt="Espada marrón de Minecraft orientada al centro">
+        <img class="pip--bottom-right" src="minecraft-sword-wood.svg" alt="Espada marrón de Minecraft orientada al centro">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">4</span>
+    </article>
+    <article class="card card--espadas" id="espadas-5" data-suit="espadas" data-rank="5" aria-label="5 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">5</span>
+      <div class="card-image card-image--five card-image--quad-grid card-image--swords-five">
+        <img class="pip--top-left" src="minecraft-sword-wood.svg" alt="Espada de madera de Minecraft invertida">
+        <img class="pip--top-right" src="minecraft-sword-wood.svg" alt="Espada de madera de Minecraft invertida">
+        <img class="pip--center" src="minecraft-sword-wood.svg" alt="Espada de madera de Minecraft central">
+        <img class="pip--bottom-left" src="minecraft-sword-wood.svg" alt="Espada de madera de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-sword-wood.svg" alt="Espada de madera de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">5</span>
+    </article>
+    <article class="card card--espadas" id="espadas-6" data-suit="espadas" data-rank="6" aria-label="6 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">6</span>
+      <div class="card-image card-image--six card-image--quad-grid card-image--three-column-six card-image--swords-six">
+        <img class="pip--top-left" src="minecraft-sword-gold.svg" alt="Espada dorada de Minecraft invertida">
+        <img class="pip--top-center" src="minecraft-sword-gold.svg" alt="Espada dorada de Minecraft">
+        <img class="pip--top-right" src="minecraft-sword-gold.svg" alt="Espada dorada de Minecraft invertida">
+        <img class="pip--bottom-left" src="minecraft-sword-gold.svg" alt="Espada dorada de Minecraft">
+        <img class="pip--bottom-center" src="minecraft-sword-gold.svg" alt="Espada dorada de Minecraft invertida">
+        <img class="pip--bottom-right" src="minecraft-sword-gold.svg" alt="Espada dorada de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">6</span>
+    </article>
+    <article class="card card--espadas" id="espadas-7" data-suit="espadas" data-rank="7" aria-label="7 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">7</span>
+      <div class="card-image card-image--seven card-image--quad-grid card-image--three-column-seven card-image--swords-seven">
+        <img class="pip--top-left" src="minecraft-sword-diamond.svg" alt="Espada verde de Minecraft invertida">
+        <img class="pip--top-center" src="minecraft-sword-diamond.svg" alt="Espada verde de Minecraft invertida">
+        <img class="pip--top-right" src="minecraft-sword-diamond.svg" alt="Espada verde de Minecraft invertida">
+        <img class="pip--center" src="minecraft-sword-diamond.svg" alt="Espada verde horizontal de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-sword-diamond.svg" alt="Espada verde de Minecraft">
+        <img class="pip--bottom-center" src="minecraft-sword-diamond.svg" alt="Espada verde de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-sword-diamond.svg" alt="Espada verde de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">7</span>
+    </article>
+    <article class="card card--espadas" id="espadas-10" data-suit="espadas" data-rank="10" aria-label="10 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">10</span>
+      <div class="card-image card-image--court">
+        <svg class="court-scene" viewBox="96.5 69.5 900 1260" role="img" aria-label="Aldeano de Minecraft sosteniendo una espada gris en perspectiva">
+          <use href="#jack-character-solid"/>
+          <g transform="translate(325 710) scale(1.1)">
+            <image href="minecraft-sword-stone-held.svg" x="-230" y="-530" width="350" height="650"/>
+          </g>
+          <use href="#jack-character-solid" clip-path="url(#jack-grip)"/>
+        </svg>
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">10</span>
+    </article>
+    <article class="card card--espadas" id="espadas-11" data-suit="espadas" data-rank="11" aria-label="11 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">11</span>
+      <div class="card-image card-image--court card-image--knight card-image--knight-swords">
+        <svg class="court-scene court-scene--knight" viewBox="8.5 -184.5 1300 1600" role="img" aria-label="Caballero de Minecraft con armadura de netherita sosteniendo una espada gris en perspectiva">
+          <image href="minecraft-knight-sword-v3.png" width="1312" height="1199"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-sword-stone.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-sword-stone.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">11</span>
+    </article>
+    <article class="card card--espadas" id="espadas-12" data-suit="espadas" data-rank="12" aria-label="12 de espadas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-espadas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">12</span>
+      <div class="card-image card-image--court card-image--king card-image--king-swords">
+        <svg class="court-scene court-scene--king" viewBox="-135 -155.5 1280 1862" role="img" aria-label="Alex con armadura de netherita dorada sosteniendo una espada gris orientada al frente y ligeramente hacia dentro">
+          <use href="#king-character"/>
+          <g transform="translate(235 905) scale(-.9 .9)">
+            <image href="minecraft-sword-stone-held.svg" x="-230" y="-530" width="350" height="650"/>
+          </g>
+          <use href="#king-character" clip-path="url(#king-forward-grip)"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-sword-stone.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-sword-stone.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">12</span>
+    </article>
+
+    <!-- BASTOS -->
+    <article class="card card--bastos" id="bastos-1" data-suit="bastos" data-rank="1" aria-label="1 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">1</span>
+      <div class="card-image card-image--ace card-image--clubs-ace">
+        <img src="minecraft-clubs-ace.svg" alt="Basto de Minecraft para el as">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">1</span>
+    </article>
+    <article class="card card--bastos" id="bastos-2" data-suit="bastos" data-rank="2" aria-label="2 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">2</span>
+      <div class="card-image card-image--pair card-image--horizontal-pair card-image--clubs-pair">
+        <img class="pip--left" src="minecraft-club.svg" alt="Palo de Minecraft invertido">
+        <img class="pip--right" src="minecraft-club.svg" alt="Palo de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">2</span>
+    </article>
+    <article class="card card--bastos" id="bastos-3" data-suit="bastos" data-rank="3" aria-label="3 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">3</span>
+      <div class="card-image card-image--triple card-image--horizontal-triple card-image--clubs-triple">
+        <img class="pip--left" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--middle" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--right" src="minecraft-club.svg" alt="Palo de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">3</span>
+    </article>
+    <article class="card card--bastos" id="bastos-4" data-suit="bastos" data-rank="4" aria-label="4 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">4</span>
+      <div class="card-image card-image--four card-image--quad-grid card-image--inward-four">
+        <img class="pip--top-left" src="minecraft-club.svg" alt="Palo de Minecraft orientado al centro">
+        <img class="pip--top-right" src="minecraft-club.svg" alt="Palo de Minecraft orientado al centro">
+        <img class="pip--bottom-left" src="minecraft-club.svg" alt="Palo de Minecraft orientado al centro">
+        <img class="pip--bottom-right" src="minecraft-club.svg" alt="Palo de Minecraft orientado al centro">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">4</span>
+    </article>
+    <article class="card card--bastos" id="bastos-5" data-suit="bastos" data-rank="5" aria-label="5 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">5</span>
+      <div class="card-image card-image--five card-image--quad-grid card-image--clubs-five">
+        <img class="pip--top-left" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--top-right" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--center" src="minecraft-club.svg" alt="Palo horizontal central de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">5</span>
+    </article>
+    <article class="card card--bastos" id="bastos-6" data-suit="bastos" data-rank="6" aria-label="6 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">6</span>
+      <div class="card-image card-image--six card-image--quad-grid card-image--three-column-six card-image--clubs-six">
+        <img class="pip--top-left" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--top-center" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--top-right" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--bottom-center" src="minecraft-club.svg" alt="Palo de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-club.svg" alt="Palo de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">6</span>
+    </article>
+    <article class="card card--bastos" id="bastos-7" data-suit="bastos" data-rank="7" aria-label="7 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">7</span>
+      <div class="card-image card-image--seven card-image--quad-grid card-image--three-column-seven card-image--clubs-seven">
+        <img class="pip--top-left" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--top-center" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--top-right" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--center" src="minecraft-club.svg" alt="Palo horizontal central de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--bottom-center" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-club.svg" alt="Palo vertical de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">7</span>
+    </article>
+    <article class="card card--bastos" id="bastos-10" data-suit="bastos" data-rank="10" aria-label="10 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">10</span>
+      <div class="card-image card-image--court">
+        <svg class="court-scene" viewBox="96.5 69.5 900 1260" role="img" aria-label="Aldeano de Minecraft sosteniendo un palo en perspectiva">
+          <use href="#jack-character-solid"/>
+          <g transform="translate(325 710) scale(1.1)">
+            <image href="minecraft-club-held.svg" x="-230" y="-530" width="350" height="650"/>
+          </g>
+          <use href="#jack-character-solid" clip-path="url(#jack-grip)"/>
+        </svg>
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">10</span>
+    </article>
+    <article class="card card--bastos" id="bastos-11" data-suit="bastos" data-rank="11" aria-label="11 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">11</span>
+      <div class="card-image card-image--court card-image--knight card-image--knight-clubs">
+        <svg class="court-scene court-scene--knight" viewBox="-14.5 -180.5 1300 1600" role="img" aria-label="Caballero de Minecraft con armadura de netherita sosteniendo un palo en perspectiva">
+          <image href="minecraft-knight-club-v2.png" width="1312" height="1199"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-club.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-club.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">11</span>
+    </article>
+    <article class="card card--bastos" id="bastos-12" data-suit="bastos" data-rank="12" aria-label="12 de bastos">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-bastos"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">12</span>
+      <div class="card-image card-image--court card-image--king card-image--king-clubs">
+        <svg class="court-scene court-scene--king" viewBox="-135 -155.5 1280 1862" role="img" aria-label="Alex con armadura de netherita dorada sosteniendo un palo orientado al frente y ligeramente hacia dentro">
+          <use href="#king-character"/>
+          <g transform="translate(235 905) scale(-.9 .9)">
+            <image href="minecraft-club-held.svg" x="-230" y="-530" width="350" height="650"/>
+          </g>
+          <use href="#king-character" clip-path="url(#king-forward-grip)"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-club.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-club.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">12</span>
+    </article>
+
+    <!-- OROS -->
+    <article class="card card--oros" id="oros-1" data-suit="oros" data-rank="1" aria-label="1 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">1</span>
+      <div class="card-image card-image--ace card-image--gold-ace">
+        <img src="minecraft-gold-ace.svg" alt="Lingote de oro vertical de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">1</span>
+    </article>
+    <article class="card card--oros" id="oros-2" data-suit="oros" data-rank="2" aria-label="2 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">2</span>
+      <div class="card-image card-image--pair card-image--vertical-pair card-image--gold-pair">
+        <img class="pip--top" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--bottom" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft invertido">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">2</span>
+    </article>
+    <article class="card card--oros" id="oros-3" data-suit="oros" data-rank="3" aria-label="3 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">3</span>
+      <div class="card-image card-image--triple card-image--staggered-triple card-image--gold-triple">
+        <img class="pip--top-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--middle-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">3</span>
+    </article>
+    <article class="card card--oros" id="oros-4" data-suit="oros" data-rank="4" aria-label="4 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">4</span>
+      <div class="card-image card-image--four card-image--quad-grid card-image--gold-four">
+        <img class="pip--top-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--top-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+        <img class="pip--bottom-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">4</span>
+    </article>
+    <article class="card card--oros" id="oros-5" data-suit="oros" data-rank="5" aria-label="5 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">5</span>
+      <div class="card-image card-image--five card-image--quad-grid card-image--gold-five">
+        <img class="pip--top-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--top-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+        <img class="pip--center" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft central">
+        <img class="pip--bottom-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">5</span>
+    </article>
+    <article class="card card--oros" id="oros-6" data-suit="oros" data-rank="6" aria-label="6 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">6</span>
+      <div class="card-image card-image--six card-image--quad-grid card-image--two-column-six card-image--gold-six">
+        <img class="pip--top-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--top-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+        <img class="pip--middle-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--middle-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+        <img class="pip--bottom-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">6</span>
+    </article>
+    <article class="card card--oros" id="oros-7" data-suit="oros" data-rank="7" aria-label="7 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">7</span>
+      <div class="card-image card-image--seven card-image--quad-grid card-image--two-column-seven card-image--gold-seven">
+        <img class="pip--top-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--top-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+        <img class="pip--raised-center" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft central">
+        <img class="pip--middle-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--middle-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+        <img class="pip--bottom-left" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft">
+        <img class="pip--bottom-right" src="minecraft-gold.svg" alt="Lingote de oro de Minecraft reflejado">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">7</span>
+    </article>
+    <article class="card card--oros" id="oros-10" data-suit="oros" data-rank="10" aria-label="10 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">10</span>
+      <div class="card-image card-image--court">
+        <svg class="court-scene" viewBox="-5.25 69.5 900 1260" role="img" aria-label="Aldeano de Minecraft sosteniendo un lingote de oro horizontal sobre la mano">
+          <use href="#jack-character-solid"/>
+          <g transform="translate(355 690)">
+            <image href="minecraft-gold-held.svg" x="-280" y="-165" width="410" height="230"/>
+          </g>
+          <use href="#jack-character-solid" clip-path="url(#jack-grip)"/>
+        </svg>
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">10</span>
+    </article>
+    <article class="card card--oros" id="oros-11" data-suit="oros" data-rank="11" aria-label="11 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">11</span>
+      <div class="card-image card-image--court card-image--knight card-image--knight-gold">
+        <svg class="court-scene court-scene--knight" viewBox="-173.484 -85.8125 1427.97 1757.5" role="img" aria-label="Caballero de Minecraft sujetando el caballo con una mano y un lingote de oro con el puño alzado, como el caballero de copas">
+          <image href="minecraft-knight-gold-v2.svg" width="1076" height="1461"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-gold.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-gold.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">11</span>
+    </article>
+    <article class="card card--oros" id="oros-12" data-suit="oros" data-rank="12" aria-label="12 de oros">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-oros"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">12</span>
+      <div class="card-image card-image--court card-image--king card-image--king-gold">
+        <svg class="court-scene court-scene--king" viewBox="-207 -155.5 1280 1862" role="img" aria-label="Alex con armadura de netherita dorada sosteniendo un lingote de oro">
+          <use href="#king-character"/>
+          <g transform="translate(235 915)">
+            <image href="minecraft-gold-held-king.svg" x="-235" y="-115" width="340" height="145"/>
+          </g>
+          <use href="#king-character" clip-path="url(#king-gold-grip)"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-gold.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-gold.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">12</span>
+    </article>
+
+    <!-- COPAS -->
+    <article class="card card--copas" id="copas-1" data-suit="copas" data-rank="1" aria-label="1 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">1</span>
+      <div class="card-image card-image--ace card-image--cups-ace">
+        <img src="minecraft-cups-1.svg" alt="Poción verde de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">1</span>
+    </article>
+    <article class="card card--copas" id="copas-2" data-suit="copas" data-rank="2" aria-label="2 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">2</span>
+      <div class="card-image card-image--pair card-image--vertical-pair card-image--cups-pair">
+        <img class="pip--top" src="minecraft-cups-2.svg" alt="Poción morada de Minecraft">
+        <img class="pip--bottom" src="minecraft-cups-2.svg" alt="Poción morada de Minecraft invertida">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">2</span>
+    </article>
+    <article class="card card--copas" id="copas-3" data-suit="copas" data-rank="3" aria-label="3 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">3</span>
+      <div class="card-image card-image--triple card-image--staggered-triple card-image--cups-triple">
+        <img class="pip--top-left" src="minecraft-cups-3.svg" alt="Poción roja de Minecraft">
+        <img class="pip--middle-right" src="minecraft-cups-3.svg" alt="Poción roja de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-cups-3.svg" alt="Poción roja de Minecraft">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">3</span>
+    </article>
+    <article class="card card--copas" id="copas-4" data-suit="copas" data-rank="4" aria-label="4 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">4</span>
+      <div class="card-image card-image--four card-image--quad-grid card-image--cups-four">
+        <img class="pip--top-left" src="minecraft-cups-4.svg" alt="Poción de Minecraft para el cuatro de copas">
+        <img class="pip--top-right" src="minecraft-cups-4.svg" alt="Poción de Minecraft para el cuatro de copas">
+        <img class="pip--bottom-left" src="minecraft-cups-4.svg" alt="Poción de Minecraft invertida">
+        <img class="pip--bottom-right" src="minecraft-cups-4.svg" alt="Poción de Minecraft invertida">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">4</span>
+    </article>
+    <article class="card card--copas" id="copas-5" data-suit="copas" data-rank="5" aria-label="5 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">5</span>
+      <div class="card-image card-image--five card-image--quad-grid card-image--cups-five">
+        <img class="pip--top-left" src="minecraft-cups-5.svg" alt="Poción de Minecraft para el cinco de copas">
+        <img class="pip--top-right" src="minecraft-cups-5.svg" alt="Poción de Minecraft para el cinco de copas">
+        <img class="pip--center" src="minecraft-cups-5.svg" alt="Poción central de Minecraft">
+        <img class="pip--bottom-left" src="minecraft-cups-5.svg" alt="Poción de Minecraft invertida">
+        <img class="pip--bottom-right" src="minecraft-cups-5.svg" alt="Poción de Minecraft invertida">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">5</span>
+    </article>
+    <article class="card card--copas" id="copas-6" data-suit="copas" data-rank="6" aria-label="6 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">6</span>
+      <div class="card-image card-image--six card-image--quad-grid card-image--two-column-six card-image--cups-six">
+        <img class="pip--top-left" src="minecraft-cups-6.svg" alt="Poción de Minecraft para el seis de copas">
+        <img class="pip--top-right" src="minecraft-cups-6.svg" alt="Poción de Minecraft para el seis de copas">
+        <img class="pip--middle-left" src="minecraft-cups-6.svg" alt="Poción de Minecraft para el seis de copas">
+        <img class="pip--middle-right" src="minecraft-cups-6.svg" alt="Poción de Minecraft invertida">
+        <img class="pip--bottom-left" src="minecraft-cups-6.svg" alt="Poción de Minecraft invertida">
+        <img class="pip--bottom-right" src="minecraft-cups-6.svg" alt="Poción de Minecraft invertida">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">6</span>
+    </article>
+    <article class="card card--copas" id="copas-7" data-suit="copas" data-rank="7" aria-label="7 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">7</span>
+      <div class="card-image card-image--seven card-image--quad-grid card-image--two-column-seven card-image--cups-seven">
+        <img class="pip--top-left" src="minecraft-cups-7.svg" alt="Poción de Minecraft para el siete de copas">
+        <img class="pip--top-right" src="minecraft-cups-7.svg" alt="Poción de Minecraft para el siete de copas">
+        <img class="pip--raised-center" src="minecraft-cups-7.svg" alt="Poción central de Minecraft">
+        <img class="pip--middle-left" src="minecraft-cups-7.svg" alt="Poción de Minecraft para el siete de copas">
+        <img class="pip--middle-right" src="minecraft-cups-7.svg" alt="Poción de Minecraft para el siete de copas">
+        <img class="pip--bottom-left" src="minecraft-cups-7.svg" alt="Poción de Minecraft para el siete de copas">
+        <img class="pip--bottom-right" src="minecraft-cups-7.svg" alt="Poción de Minecraft para el siete de copas">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">7</span>
+    </article>
+    <article class="card card--copas" id="copas-10" data-suit="copas" data-rank="10" aria-label="10 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">10</span>
+      <div class="card-image card-image--court">
+        <svg class="court-scene" viewBox="96.5 69.5 900 1260" role="img" aria-label="Aldeano de Minecraft sosteniendo una poción azul">
+          <use href="#jack-character"/>
+          <image href="minecraft-cups-10-angled-blue.svg" x="215" y="405" width="210" height="315"/>
+          <use href="#jack-character" clip-path="url(#jack-grip)"/>
+        </svg>
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">10</span>
+    </article>
+    <article class="card card--copas" id="copas-11" data-suit="copas" data-rank="11" aria-label="11 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">11</span>
+      <div class="card-image card-image--court card-image--knight card-image--knight-cups">
+        <svg class="court-scene court-scene--knight" viewBox="-173.984 -116.812 1427.97 1757.5" role="img" aria-label="Caballero de Minecraft con la poción turquesa inclinada detrás del puño alzado, según la referencia">
+          <image href="minecraft-knight-cups-v5.svg" width="1077" height="1461"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-cups-11.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-cups-11.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">11</span>
+    </article>
+    <article class="card card--copas" id="copas-12" data-suit="copas" data-rank="12" aria-label="12 de copas">
+      <svg class="card-frame" viewBox="0 0 560 860" preserveAspectRatio="none" aria-hidden="true" focusable="false"><use href="#frame-copas"/></svg>
+      <span class="card-number card-number--top" aria-hidden="true">12</span>
+      <div class="card-image card-image--court card-image--king card-image--king-cups">
+        <svg class="court-scene court-scene--king" viewBox="-268.5 -286.5 1368 1990" role="img" aria-label="Alex con armadura de netherita dorada sosteniendo una poción naranja en su mano izquierda y la mano derecha ligeramente elevada">
+          <image href="minecraft-king-cups-v3.svg" width="831" height="1417"/>
+        </svg>
+        <img class="corner-suit corner-suit--top" src="minecraft-cups-12.svg" alt="" aria-hidden="true">
+        <img class="corner-suit corner-suit--bottom" src="minecraft-cups-12.svg" alt="" aria-hidden="true">
+      </div>
+      <span class="card-number card-number--bottom" aria-hidden="true">12</span>
+    </article>
+
+    <!-- BACK: same 65 × 95 mm outline, finished portal PNG only. -->
+    <article class="card card--back" id="card-back" aria-label="Reverso de la baraja">
+      <img class="card-back-image" src="minecraft-card-back.png" alt="Textura del portal del End para el reverso de las cartas">
+    </article>
+
+  </main>
+</body>
+</html>

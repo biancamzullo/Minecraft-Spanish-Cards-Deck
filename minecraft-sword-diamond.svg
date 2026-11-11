@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-labelledby="title description">
+  <title id="title">Minecraft green diamond sword</title>
+  <desc id="description">The green diamond sword extracted from minecraft-swords.svg, retaining its original pixel grid and colors.</desc>
+  <path fill="#343434" d="M13 0h3v1H13zM12 1h1v1H12zM15 1h1v1H15zM11 2h1v1H11zM15 2h1v1H15zM10 3h1v1H10zM14 3h1v1H14zM9 4h1v1H9zM13 4h1v1H13zM8 5h1v1H8zM12 5h1v1H12zM7 6h1v1H7zM11 6h1v1H11zM6 7h1v1H6zM10 7h1v1H10zM9 8h1v1H9zM8 9h1v1H8z"/>
+  <path fill="#33ebcb" d="M13 1h1v1H13zM12 2h1v1H12zM14 2h1v1H14zM11 3h1v1H11zM13 3h1v1H13zM10 4h1v1H10zM12 4h1v1H12zM9 5h1v1H9zM11 5h1v1H11zM8 6h1v1H8zM10 6h1v1H10zM7 7h1v1H7zM9 7h1v1H9zM6 8h1v1H6zM8 8h1v1H8zM7 9h1v1H7z"/>
+  <path fill="#2bc7ac" d="M14 1h1v1H14zM13 2h1v1H13zM12 3h1v1H12zM11 4h1v1H11zM10 5h1v1H10zM9 6h1v1H9zM8 7h1v1H8zM7 8h1v1H7zM6 9h1v1H6z"/>
+  <path fill="#1e1d1e" d="M2 6h2v1H2zM2 7h1v1H2zM4 7h1v1H4zM3 8h1v1H3zM5 8h1v1H5zM3 9h1v1H3zM5 9h1v1H5zM4 10h1v1H4zM6 10h2v1H6zM8 11h1v1H8zM6 12h2v1H6zM9 12h1v1H9zM0 13h2v1H0zM8 13h2v1H8zM0 14h1v1H0zM2 14h1v1H2zM0 15h3v1H0z"/>
+  <path fill="#156355" d="M3 7h1v1H3zM7 11h1v1H7zM8 12h1v1H8z"/>
+  <path fill="#1e8a77" d="M4 8h1v1H4zM4 9h1v1H4zM5 10h1v1H5zM6 11h1v1H6zM1 14h1v1H1z"/>
+  <path fill="#382810" d="M3 11h1v1H3zM2 12h1v1H2z"/>
+  <path fill="#553d16" d="M4 11h1v1H4zM2 13h1v1H2z"/>
+  <path fill="#1e160a" d="M5 11h1v1H5zM4 12h1v1H4zM3 13h1v1H3z"/>
+  <path fill="#74541d" d="M3 12h1v1H3z"/>
+</svg>

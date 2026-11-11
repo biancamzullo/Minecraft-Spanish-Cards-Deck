@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320" viewBox="0 0 12 16" shape-rendering="crispEdges" role="img" aria-labelledby="title description">
+  <title id="title">Minecraft gold ingot — ace of oros</title>
+  <desc id="description">Single upright gold ingot for the ace of the Spanish gold suit. Rebuilt as crisp vector pixels from the supplied reference. Transparent background; no embedded raster images.</desc>
+  <g id="gold-ingot" transform="matrix(0 1 -1 0 12 0)">
+    <path id="outline-gold" fill="#b06310" d="M10 0h2v1H10zM7 1h3v1H7zM12 1h1v1H12zM4 2h3v1H4zM13 2h1v1H13zM1 3h3v1H1zM0 4h1v1H0zM0 5h1v1H0zM0 6h1v1H0zM0 7h1v1H0zM0 8h1v1H0zM1 9h1v1H1zM2 10h1v1H2zM3 11h2v1H3z"/>
+    <path id="outline-shadow" fill="#742701" d="M14 3h1v1H14zM15 4h1v1H15zM15 5h1v1H15zM15 6h1v1H15zM15 7h1v1H15zM13 8h2v1H13zM10 9h3v1H10zM7 10h3v1H7zM5 11h2v1H5z"/>
+    <path id="gold-face" fill="#f9f35f" d="M7 2h6v1H7zM5 3h8v1H5zM2 4h10v1H2zM14 4h1v1H14zM3 5h6v1H3zM12 5h1v1H12zM2 6h1v1H2zM4 6h2v1H4zM9 6h1v1H9zM2 7h1v1H2zM6 7h1v1H6zM2 8h1v1H2zM4 8h1v1H4zM4 9h1v1H4z"/>
+    <path id="gold-edge" fill="#f8d448" d="M10 1h2v1H10zM4 3h1v1H4zM13 3h1v1H13zM1 5h1v1H1zM14 5h1v1H14zM1 6h1v1H1zM14 6h1v1H14zM1 7h1v1H1zM3 7h1v1H3zM13 7h2v1H13zM3 8h1v1H3zM11 8h2v1H11zM3 9h1v1H3zM4 10h1v1H4z"/>
+    <path id="shine" fill="#fbfadc" d="M1 4h1v1H1zM12 4h2v1H12zM2 5h1v1H2zM9 5h3v1H9zM3 6h1v1H3zM6 6h3v1H6zM4 7h2v1H4z"/>
+    <path id="gold-shadow" fill="#d99513" d="M13 5h1v1H13zM11 6h3v1H11zM8 7h4v1H8zM6 8h4v1H6zM6 9h2v1H6z"/>
+    <path id="gold-midtone" fill="#e7af15" d="M10 6h1v1H10zM7 7h1v1H7zM12 7h1v1H12zM1 8h1v1H1zM5 8h1v1H5zM10 8h1v1H10zM2 9h1v1H2zM5 9h1v1H5zM8 9h2v1H8zM3 10h1v1H3zM5 10h2v1H5z"/>
+  </g>
+</svg>

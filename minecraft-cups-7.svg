@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="90" height="130" viewBox="0 0 9 13" shape-rendering="crispEdges" role="img" aria-labelledby="title description">
+  <title id="title">Minecraft cups — mint green potion</title>
+  <desc id="description">Single mint green potion bottle for the Spanish cups suit, matching the supplied mint-green reference. Transparent background, editable vector pixels, and a consistent 9 by 13 grid.</desc>
+  <g id="potion-mint">
+    <path id="color-1" fill="#d46d49" d="M3 0h2v1H3z"/>
+    <path id="color-2" fill="#a94725" d="M5 0h1v1H5zM3 2h2v1H3z"/>
+    <path id="color-3" fill="#d4e5f7" d="M2 1h1v1H2zM2 5h1v1H2zM1 6h1v1H1zM0 7h1v1H0zM0 8h1v1H0z"/>
+    <path id="color-4" fill="#ccafa5" d="M3 1h3v1H3z"/>
+    <path id="color-5" fill="#b3cfec" d="M6 1h1v1H6zM2 2h1v1H2zM6 2h1v1H6zM3 3h1v1H3zM3 4h1v1H3zM3 6h1v1H3zM2 7h1v1H2zM2 8h1v1H2zM0 9h1v1H0z"/>
+    <path id="color-6" fill="#973716" d="M5 2h1v1H5z"/>
+    <path id="color-7" fill="#5d8fc2" d="M5 3h1v1H5zM5 4h1v1H5zM6 5h1v1H6zM7 6h1v1H7zM8 7h1v1H8zM8 8h1v1H8zM8 9h1v1H8zM0 10h1v1H0zM8 10h1v1H8zM1 11h1v1H1zM7 11h1v1H7zM2 12h5v1H2z"/>
+    <path id="color-8" fill="#98dac0" d="M2 6h1v1H2zM3 7h1v1H3zM3 8h1v1H3z"/>
+    <path id="color-9" fill="#5c8474" d="M4 6h2v1H4zM6 7h1v1H6zM1 8h1v1H1zM7 8h1v1H7zM1 9h1v1H1zM2 10h1v1H2zM5 10h1v1H5zM3 11h2v1H3z"/>
+    <path id="color-10" fill="#3b554b" d="M6 6h1v1H6zM1 7h1v1H1zM7 7h1v1H7zM1 10h1v1H1zM7 10h1v1H7zM2 11h1v1H2zM6 11h1v1H6z"/>
+    <path id="color-11" fill="#75a894" d="M4 7h2v1H4zM5 8h2v1H5zM2 9h2v1H2zM5 9h1v1H5zM3 10h1v1H3z"/>
+    <path id="color-12" fill="#659180" d="M4 8h1v1H4z"/>
+    <path id="color-13" fill="#587f6f" d="M4 9h1v1H4z"/>
+    <path id="color-14" fill="#8badd0" d="M6 9h1v1H6zM6 10h1v1H6zM5 11h1v1H5z"/>
+    <path id="color-15" fill="#638e7d" d="M7 9h1v1H7zM4 10h1v1H4z"/>
+  </g>
+</svg>

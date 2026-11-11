@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="280" viewBox="0 0 12 14" shape-rendering="crispEdges" role="img" aria-labelledby="title description">
+  <title id="title">Minecraft bastos — ace of clubs</title>
+  <desc id="description">Upright brown-and-green Minecraft icon for the 1 of bastos, reconstructed from the supplied reference on a 12 by 14 pixel grid. Six editable vector colors, transparent background, no embedded bitmap.</desc>
+  <g id="clubs-ace">
+    <path id="leaf-light" fill="#3a5b39" d="M7 0h1v1H7zM2 3h1v1H2zM5 3h1v1H5zM9 3h1v1H9zM1 4h1v1H1zM3 4h2v1H3zM8 4h1v1H8zM0 5h1v1H0zM11 5h1v1H11zM1 6h1v1H1zM3 6h2v1H3zM8 6h1v1H8zM7 7h1v1H7zM11 7h1v1H11zM2 8h2v1H2zM6 8h1v1H6zM4 9h1v1H4zM6 9h1v1H6zM9 9h1v1H9zM5 10h1v1H5zM10 10h1v1H10zM8 11h1v1H8z"/>
+    <path id="leaf-midtone" fill="#2e492e" d="M6 1h1v1H6zM3 3h1v1H3zM10 3h1v1H10zM2 4h1v1H2zM5 4h1v1H5zM9 4h1v1H9zM5 5h1v1H5zM8 12h1v1H8z"/>
+    <path id="leaf-shadow" fill="#223521" d="M6 0h1v1H6zM5 1h1v1H5zM7 1h2v1H7zM1 5h1v1H1zM8 5h1v1H8zM5 6h1v1H5zM9 6h1v1H9zM7 8h1v1H7zM9 8h1v1H9zM4 10h1v1H4zM8 10h2v1H8zM5 11h1v1H5z"/>
+    <path id="wood-light" fill="#513519" d="M6 2h1v1H6zM2 5h2v1H2zM2 6h1v1H2zM6 6h2v1H6zM10 6h2v1H10zM3 7h1v1H3zM5 7h1v1H5zM8 7h1v1H8zM4 8h1v1H4zM5 9h1v1H5zM8 9h1v1H8zM6 11h1v1H6zM5 12h1v1H5z"/>
+    <path id="wood-midtone" fill="#2e1d0a" d="M6 3h1v1H6zM7 4h1v1H7zM6 5h2v1H6zM4 7h1v1H4zM6 7h1v1H6zM9 7h1v1H9zM5 8h1v1H5zM8 8h1v1H8zM7 9h1v1H7zM6 10h2v1H6zM7 12h1v1H7z"/>
+    <path id="wood-shadow" fill="#120802" d="M7 2h1v1H7zM7 3h1v1H7zM6 4h1v1H6zM10 7h1v1H10zM7 11h1v1H7zM6 12h1v1H6zM6 13h2v1H6z"/>
+  </g>
+</svg>

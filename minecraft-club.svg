@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 13 13" shape-rendering="crispEdges" role="img" aria-labelledby="title description">
+  <title id="title">Minecraft stick — bastos suit icon</title>
+  <desc id="description">Single diagonal Minecraft stick rebuilt from the supplied reference on its original pixel grid. Four editable vector colors, clean stepped edges, transparent background. Ready to repeat on Spanish bastos cards.</desc>
+  <g id="minecraft-stick">
+    <path id="outline" fill="#281d0a" d="M12 0h1v1H12zM12 1h1v1H12zM11 2h1v1H11zM10 3h1v1H10zM9 4h1v1H9zM8 5h1v1H8zM7 6h1v1H7zM6 7h1v1H6zM5 8h1v1H5zM4 9h1v1H4zM3 10h1v1H3zM2 11h1v1H2zM0 12h2v1H0z"/>
+    <path id="wood-shadow" fill="#493616" d="M11 0h1v1H11zM10 1h1v1H10zM9 2h1v1H9zM8 3h1v1H8zM7 4h1v1H7zM6 5h1v1H6zM5 6h1v1H5zM4 7h1v1H4zM3 8h1v1H3zM2 9h1v1H2zM1 10h1v1H1zM0 11h1v1H0z"/>
+    <path id="wood-midtone" fill="#684e1e" d="M9 3h1v1H9zM7 5h1v1H7zM5 7h1v1H5zM3 9h1v1H3z"/>
+    <path id="wood-highlight" fill="#8a6727" d="M11 1h1v1H11zM10 2h1v1H10zM8 4h1v1H8zM6 6h1v1H6zM4 8h1v1H4zM2 10h1v1H2zM1 11h1v1H1z"/>
+  </g>
+</svg>
